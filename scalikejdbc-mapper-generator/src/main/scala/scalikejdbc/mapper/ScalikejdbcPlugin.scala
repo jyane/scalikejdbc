@@ -55,7 +55,8 @@ object ScalikejdbcPlugin extends AutoPlugin {
       tableNameToClassName: String => String,
       columnNameToFieldName: String => String,
       returnCollectionType: ReturnCollectionType,
-      view: Boolean
+      view: Boolean,
+      ignoreFlywayMetaDataTable: Boolean
     )
 
     @deprecated("will be removed. add `enablePlugins(ScalikejdbcPlugin)` in your build.sbt", "")
@@ -91,6 +92,7 @@ object ScalikejdbcPlugin extends AutoPlugin {
   private[this] final val DATETIME_CLASS = GENERATOR + "dateTimeClass"
   private[this] final val RETURN_COLLECTION_TYPE = GENERATOR + "returnCollectionType"
   private[this] final val VIEW = GENERATOR + "view"
+  private[this] final val IGNORE_FLYWAY_META_DATA_TABLE = GENERATOR + "ignoreFlywayMetaDataTable"
 
   private[this] val jdbcKeys = Set(
     JDBC_DRIVER, JDBC_URL, JDBC_USER_NAME, JDBC_PASSWORD, JDBC_SCHEMA
@@ -98,7 +100,7 @@ object ScalikejdbcPlugin extends AutoPlugin {
   private[this] val generatorKeys = Set(
     PACKAGE_NAME, TEMPLATE, TEST_TEMPLATE, LINE_BREAK, CASE_CLASS_ONLY,
     ENCODING, AUTO_CONSTRUCT, DEFAULT_AUTO_SESSION, DATETIME_CLASS, RETURN_COLLECTION_TYPE,
-    VIEW
+    VIEW, IGNORE_FLYWAY_META_DATA_TABLE
   )
   private[this] val allKeys = jdbcKeys ++ generatorKeys
 
@@ -140,7 +142,8 @@ object ScalikejdbcPlugin extends AutoPlugin {
       returnCollectionType = getString(props, RETURN_COLLECTION_TYPE).map { name =>
         ReturnCollectionType.map.getOrElse(name.toLowerCase(en), sys.error(s"does not support $name. support types are ${ReturnCollectionType.map.keys.mkString(", ")}"))
       }.getOrElse(defaultConfig.returnCollectionType),
-      view = getString(props, VIEW).map(_.toBoolean).getOrElse(defaultConfig.view)
+      view = getString(props, VIEW).map(_.toBoolean).getOrElse(defaultConfig.view),
+      ignoreFlywayMetaDataTable = getString(props, IGNORE_FLYWAY_META_DATA_TABLE).map(_.toBoolean).getOrElse(defaultConfig.ignoreFlywayMetaDataTable)
     )
   }
 
@@ -184,7 +187,8 @@ object ScalikejdbcPlugin extends AutoPlugin {
       tableNameToClassName = generatorSettings.tableNameToClassName,
       columnNameToFieldName = generatorSettings.columnNameToFieldName,
       returnCollectionType = generatorSettings.returnCollectionType,
-      view = generatorSettings.view
+      view = generatorSettings.view,
+      ignoreFlywayMetaDataTable = generatorSettings.ignoreFlywayMetaDataTable
     )
 
   private def generator(tableName: String, className: Option[String], srcDir: File, testDir: File, jdbc: JDBCSettings, generatorSettings: GeneratorSettings): Option[CodeGenerator] = {

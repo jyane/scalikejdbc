@@ -211,4 +211,27 @@ class MapperGeneratorWithH2Spec extends FlatSpec with Matchers {
     Thread.sleep(500)
   }
 
+  it should "ignore flyway meta data table if ignore setting is enable" in {
+    DB autoCommit { implicit session =>
+      SQL("""
+        create table scheme_version (
+        )
+      """).execute.apply()
+    }
+
+    Model(url, username, password).table(null, "SCHEME_VERSION").map {
+      table =>
+        val generator = new CodeGenerator(table)(GeneratorConfig(
+          srcDir = srcDir,
+          packageName = "com.example",
+          ignoreFlywayMetaDataTable = true
+        ))
+        generator.writeModel()
+    } match {
+      case None =>
+      case _ => fail("The table was created.")
+    }
+    Thread.sleep(500)
+  }
+
 }

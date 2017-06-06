@@ -21,6 +21,7 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
   }
   private val comma = ","
   private val eol = config.lineBreak.value
+  private val FLYWAY_META_DATA_TABLE_NAME = "scheme_version"
 
   object TypeName {
     val Any = "Any"
@@ -183,6 +184,7 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
    * It overwrites a file if it already exists.
    */
   def writeModel(): Unit = {
+    if (config.ignoreFlywayMetaDataTable && table.name == FLYWAY_META_DATA_TABLE_NAME) return
     mkdirRecursively(outputModelFile.getParentFile)
     using(new FileOutputStream(outputModelFile)) { fos =>
       using(new OutputStreamWriter(fos)) {
